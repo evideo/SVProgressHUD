@@ -11,6 +11,8 @@
 @interface SVIndefiniteAnimatedView ()
 
 @property (nonatomic, strong) CAShapeLayer *indefiniteAnimatedLayer;
+@property (nonatomic, strong) UIImageView  *imageView;
+@property (nonatomic, strong) UIImageView  *imageViewDark;
 
 @end
 
@@ -35,63 +37,104 @@
 }
 
 - (CAShapeLayer*)indefiniteAnimatedLayer {
-    if(!_indefiniteAnimatedLayer) {
-        CGPoint arcCenter = CGPointMake(self.radius+self.strokeThickness/2+5, self.radius+self.strokeThickness/2+5);
-        UIBezierPath* smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter radius:self.radius startAngle:(CGFloat) (M_PI*3/2) endAngle:(CGFloat) (M_PI/2+M_PI*5) clockwise:YES];
+    if(_custom) {
+        CABasicAnimation *fullRotation;
+        fullRotation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+        fullRotation.toValue = [NSNumber numberWithFloat:0];
+        fullRotation.fromValue = [NSNumber numberWithFloat:((360 * M_PI) / 180)];
+        fullRotation.duration = 3;
+        fullRotation.repeatCount = 100;
         
-        _indefiniteAnimatedLayer = [CAShapeLayer layer];
-        _indefiniteAnimatedLayer.contentsScale = [[UIScreen mainScreen] scale];
-        _indefiniteAnimatedLayer.frame = CGRectMake(0.0f, 0.0f, arcCenter.x*2, arcCenter.y*2);
-        _indefiniteAnimatedLayer.fillColor = [UIColor clearColor].CGColor;
-        _indefiniteAnimatedLayer.strokeColor = self.strokeColor.CGColor;
-        _indefiniteAnimatedLayer.lineWidth = self.strokeThickness;
-        _indefiniteAnimatedLayer.lineCap = kCALineCapRound;
-        _indefiniteAnimatedLayer.lineJoin = kCALineJoinBevel;
-        _indefiniteAnimatedLayer.path = smoothedPath.CGPath;
+        CABasicAnimation *reverseRotation;
+        reverseRotation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+        reverseRotation.fromValue = [NSNumber numberWithFloat:0];
+        reverseRotation.toValue = [NSNumber numberWithFloat:((360 * M_PI) / 180)];
+        reverseRotation.duration = 3;
+        reverseRotation.repeatCount = 100;
         
-        CALayer *maskLayer = [CALayer layer];
+        if(!_imageView && !_imageViewDark) {
+            NSBundle *bundle = [NSBundle bundleForClass:[SVProgressHUD class]];
+            NSURL *url = [bundle URLForResource:@"SVProgressHUD" withExtension:@"bundle"];
+            NSBundle *imageBundle = [NSBundle bundleWithURL:url];
+            
+            
+            NSString *pathDark = [imageBundle pathForResource:@"gear_dark" ofType:@"png"];
+            NSString *path = [imageBundle pathForResource:@"gear" ofType:@"png"];
+            
+            UIImage *imageDark = [UIImage imageWithContentsOfFile:pathDark];
+            UIImage *image = [UIImage imageWithContentsOfFile:path];
+            
+            _imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, image.size.width/2, image.size.width/2)];
+            [_imageView setImage:image];
+            
+            _imageViewDark = [[UIImageView alloc]initWithFrame:CGRectMake(image.size.width/4+4, image.size.width/4+4, imageDark.size.width/2, imageDark.size.width/2)];
+            [_imageViewDark setImage:[UIImage imageWithContentsOfFile:pathDark]];
+            
+            [self addSubview:_imageView];
+            [self addSubview:_imageViewDark];
+        }
         
-        NSBundle *bundle = [NSBundle bundleForClass:[SVProgressHUD class]];
-        NSURL *url = [bundle URLForResource:@"SVProgressHUD" withExtension:@"bundle"];
-        NSBundle *imageBundle = [NSBundle bundleWithURL:url];
-        
-        NSString *path = [imageBundle pathForResource:@"angle-mask" ofType:@"png"];
-        
-        maskLayer.contents = (__bridge id)[[UIImage imageWithContentsOfFile:path] CGImage];
-        maskLayer.frame = _indefiniteAnimatedLayer.bounds;
-        _indefiniteAnimatedLayer.mask = maskLayer;
-        
-        NSTimeInterval animationDuration = 1;
-        CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-        
-        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
-        animation.fromValue = (id) 0;
-        animation.toValue = @(M_PI*2);
-        animation.duration = animationDuration;
-        animation.timingFunction = linearCurve;
-        animation.removedOnCompletion = NO;
-        animation.repeatCount = INFINITY;
-        animation.fillMode = kCAFillModeForwards;
-        animation.autoreverses = NO;
-        [_indefiniteAnimatedLayer.mask addAnimation:animation forKey:@"rotate"];
-        
-        CAAnimationGroup *animationGroup = [CAAnimationGroup animation];
-        animationGroup.duration = animationDuration;
-        animationGroup.repeatCount = INFINITY;
-        animationGroup.removedOnCompletion = NO;
-        animationGroup.timingFunction = linearCurve;
-        
-        CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
-        strokeStartAnimation.fromValue = @0.015;
-        strokeStartAnimation.toValue = @0.515;
-        
-        CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-        strokeEndAnimation.fromValue = @0.485;
-        strokeEndAnimation.toValue = @0.985;
-        
-        animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
-        [_indefiniteAnimatedLayer addAnimation:animationGroup forKey:@"progress"];
-        
+        [_imageView.layer addAnimation:fullRotation forKey:@"100"];
+        [_imageViewDark.layer addAnimation:reverseRotation forKey:@"100"];
+    } else {
+        if(!_indefiniteAnimatedLayer) {
+            CGPoint arcCenter = CGPointMake(self.radius+self.strokeThickness/2+5, self.radius+self.strokeThickness/2+5);
+            UIBezierPath* smoothedPath = [UIBezierPath bezierPathWithArcCenter:arcCenter radius:self.radius startAngle:(CGFloat) (M_PI*3/2) endAngle:(CGFloat) (M_PI/2+M_PI*5) clockwise:YES];
+            
+            _indefiniteAnimatedLayer = [CAShapeLayer layer];
+            _indefiniteAnimatedLayer.contentsScale = [[UIScreen mainScreen] scale];
+            _indefiniteAnimatedLayer.frame = CGRectMake(0.0f, 0.0f, arcCenter.x*2, arcCenter.y*2);
+            _indefiniteAnimatedLayer.fillColor = [UIColor clearColor].CGColor;
+            _indefiniteAnimatedLayer.strokeColor = self.strokeColor.CGColor;
+            _indefiniteAnimatedLayer.lineWidth = self.strokeThickness;
+            _indefiniteAnimatedLayer.lineCap = kCALineCapRound;
+            _indefiniteAnimatedLayer.lineJoin = kCALineJoinBevel;
+            _indefiniteAnimatedLayer.path = smoothedPath.CGPath;
+            
+            CALayer *maskLayer = [CALayer layer];
+            
+            NSBundle *bundle = [NSBundle bundleForClass:[SVProgressHUD class]];
+            NSURL *url = [bundle URLForResource:@"SVProgressHUD" withExtension:@"bundle"];
+            NSBundle *imageBundle = [NSBundle bundleWithURL:url];
+            
+            NSString *path = [imageBundle pathForResource:@"angle-mask" ofType:@"png"];
+            
+            maskLayer.contents = (__bridge id)[[UIImage imageWithContentsOfFile:path] CGImage];
+            maskLayer.frame = _indefiniteAnimatedLayer.bounds;
+            _indefiniteAnimatedLayer.mask = maskLayer;
+            
+            NSTimeInterval animationDuration = 1;
+            CAMediaTimingFunction *linearCurve = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+            
+            CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+            animation.fromValue = (id) 0;
+            animation.toValue = @(M_PI*2);
+            animation.duration = animationDuration;
+            animation.timingFunction = linearCurve;
+            animation.removedOnCompletion = NO;
+            animation.repeatCount = INFINITY;
+            animation.fillMode = kCAFillModeForwards;
+            animation.autoreverses = NO;
+            [_indefiniteAnimatedLayer.mask addAnimation:animation forKey:@"rotate"];
+            
+            CAAnimationGroup *animationGroup = [CAAnimationGroup animation];
+            animationGroup.duration = animationDuration;
+            animationGroup.repeatCount = INFINITY;
+            animationGroup.removedOnCompletion = NO;
+            animationGroup.timingFunction = linearCurve;
+            
+            CABasicAnimation *strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+            strokeStartAnimation.fromValue = @0.015;
+            strokeStartAnimation.toValue = @0.515;
+            
+            CABasicAnimation *strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+            strokeEndAnimation.fromValue = @0.485;
+            strokeEndAnimation.toValue = @0.985;
+            
+            animationGroup.animations = @[strokeStartAnimation, strokeEndAnimation];
+            [_indefiniteAnimatedLayer addAnimation:animationGroup forKey:@"progress"];
+            
+        }
     }
     return _indefiniteAnimatedLayer;
 }

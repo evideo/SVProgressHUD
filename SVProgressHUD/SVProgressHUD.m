@@ -169,6 +169,11 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     [self setDefaultStyle:SVProgressHUDStyleCustom];
 }
 
++ (void)setCustomImage:(Boolean)custom {
+    [self sharedView].custom = custom;
+    [self setDefaultStyle:SVProgressHUDStyleCustom];
+}
+
 + (void)setBackgroundLayerColor:(UIColor*)color {
     [self sharedView].backgroundLayerColor = color;
 }
@@ -1081,10 +1086,14 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
         
         // Update styling
         SVIndefiniteAnimatedView *indefiniteAnimatedView = (SVIndefiniteAnimatedView*)_indefiniteAnimatedView;
-        indefiniteAnimatedView.strokeColor = self.foregroundColorForStyle;
+        
+        indefiniteAnimatedView.custom = self.custom;
+        indefiniteAnimatedView.strokeColor = [UIColor clearColor];
         indefiniteAnimatedView.strokeThickness = self.ringThickness;
         indefiniteAnimatedView.radius = self.statusLabel.text ? self.ringRadius : self.ringNoTextRadius;
+        
     } else {
+        
         // Check if spinner exists and is an object of different class
         if(_indefiniteAnimatedView && ![_indefiniteAnimatedView isKindOfClass:[UIActivityIndicatorView class]]){
             [_indefiniteAnimatedView removeFromSuperview];
@@ -1396,6 +1405,10 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 
     
 #pragma mark - UIAppearance Setters
+    
+- (void)setCustomImage:(Boolean)custom {
+    if (!_isInitializing) _custom = custom;
+}
 
 - (void)setDefaultStyle:(SVProgressHUDStyle)style {
     if (!_isInitializing) _defaultStyle = style;

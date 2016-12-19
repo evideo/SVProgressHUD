@@ -55,6 +55,8 @@
 #pragma mark - Show Methods Sample
 
 - (void)show {
+    [SVProgressHUD setBackgroundColor:[UIColor whiteColor]];
+    [SVProgressHUD setCustomImage:YES];
     [SVProgressHUD show];
 }
 
