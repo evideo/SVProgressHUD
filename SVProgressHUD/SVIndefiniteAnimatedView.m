@@ -8,11 +8,15 @@
 #import "SVIndefiniteAnimatedView.h"
 #import "SVProgressHUD.h"
 
+#define CustomImageMargin  7
+
 @interface SVIndefiniteAnimatedView ()
 
 @property (nonatomic, strong) CAShapeLayer *indefiniteAnimatedLayer;
 @property (nonatomic, strong) UIImageView  *imageView;
 @property (nonatomic, strong) UIImageView  *imageViewDark;
+@property (nonatomic, strong) UIImage *imageDark;
+@property (nonatomic, strong) UIImage *image;
 
 @end
 
@@ -52,6 +56,7 @@
         reverseRotation.duration = 3;
         reverseRotation.repeatCount = 100;
         
+        
         if(!_imageView && !_imageViewDark) {
             NSBundle *bundle = [NSBundle bundleForClass:[SVProgressHUD class]];
             NSURL *url = [bundle URLForResource:@"SVProgressHUD" withExtension:@"bundle"];
@@ -61,19 +66,22 @@
             NSString *pathDark = [imageBundle pathForResource:@"gear_dark" ofType:@"png"];
             NSString *path = [imageBundle pathForResource:@"gear" ofType:@"png"];
             
-            UIImage *imageDark = [UIImage imageWithContentsOfFile:pathDark];
-            UIImage *image = [UIImage imageWithContentsOfFile:path];
             
-            _imageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, image.size.width/2, image.size.width/2)];
-            [_imageView setImage:image];
+            _imageDark = [UIImage imageWithContentsOfFile:pathDark];
+            _image = [UIImage imageWithContentsOfFile:path];
             
-            _imageViewDark = [[UIImageView alloc]initWithFrame:CGRectMake(image.size.width/4+4, image.size.width/4+4, imageDark.size.width/2, imageDark.size.width/2)];
+            _imageView = [[UIImageView alloc]initWithFrame:CGRectMake(self.frame.size.width/2-_image.size.width+CustomImageMargin, self.frame.size.width/2-_image.size.width+CustomImageMargin, _image.size.width, _image.size.width)];
+            [_imageView setImage:_image];
+            
+            _imageViewDark = [[UIImageView alloc]initWithFrame:CGRectMake(self.frame.size.width/2-CustomImageMargin, self.frame.size.width/2-CustomImageMargin, _imageDark.size.width, _imageDark.size.width)];
             [_imageViewDark setImage:[UIImage imageWithContentsOfFile:pathDark]];
             
             [self addSubview:_imageView];
             [self addSubview:_imageViewDark];
         }
         
+        [_imageView setFrame:CGRectMake(self.frame.size.width/2-_image.size.width+CustomImageMargin, self.frame.size.width/2-_image.size.width+CustomImageMargin, _image.size.width, _image.size.width)];
+        [_imageViewDark setFrame:CGRectMake(self.frame.size.width/2-CustomImageMargin, self.frame.size.width/2-CustomImageMargin, _imageDark.size.width, _imageDark.size.width)];
         [_imageView.layer addAnimation:fullRotation forKey:@"100"];
         [_imageViewDark.layer addAnimation:reverseRotation forKey:@"100"];
     } else {
